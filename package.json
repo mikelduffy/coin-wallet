@@ -15,7 +15,7 @@
   },
   "lint-staged": {
     "src/**/*.{js,jsx,json,css}": [
-      "prettier --single-quote --write",
+      "prettier --single-quote --trailing-comma es5 --no-semi --write",
       "git add"
     ]
   },
