@@ -1,4 +1,4 @@
-import Wallet from './wallet'
+import Wallet from './'
 import response from './__mockdata__/mockAPIResponses'
 
 global.localStorage = {
@@ -35,8 +35,17 @@ it('can change passwords', () => {
 
 it('can store and retrieve wallets from localStorage', () => {
   const wallet = new Wallet({ password: 'test' })
-  wallet.setWallet({ encryptedWallet: 'test' })
-  expect(localStorage.setItem).toHaveBeenCalledWith(wallet.id, 'test')
+  wallet.setWallet()
+  expect(localStorage.setItem).toHaveBeenCalledWith(
+    'coin-wallet',
+    JSON.stringify({
+      id: wallet.id,
+      passwordHash: wallet.passwordHash,
+      addresses: wallet.addresses,
+      coin: wallet.coin,
+      network: wallet.network,
+    })
+  )
   wallet.getWallet()
   expect(localStorage.getItem).toHaveBeenCalled()
 })

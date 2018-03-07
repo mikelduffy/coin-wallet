@@ -2,11 +2,11 @@ import uuid from 'uuid/v4'
 import aes from 'crypto-js/aes'
 import sha3 from 'crypto-js/sha3'
 import encUtf8 from 'crypto-js/enc-utf8'
-import request from '../helpers/request'
-import { validateWalletOptions, isRequired } from '../helpers/validation'
 import bitcoin from 'bitcoinjs-lib'
 import bigi from 'bigi'
 import buffer from 'buffer'
+import request from '../../helpers/request'
+import { validateWalletOptions, isRequired } from '../../helpers/validation'
 
 /**
  * @class Wallet
@@ -44,11 +44,21 @@ export default class Wallet {
     return true
   }
 
-  getWallet = () => localStorage.getItem(this.id)
+  getWallet = () => localStorage.getItem('coin-wallet')
 
-  setWallet = ({ encryptedWallet = isRequired('encrypted wallet') }) => {
-    localStorage.setItem(this.id, encryptedWallet)
+  setWallet = () => {
+    const wallet = {
+      id: this.id,
+      passwordHash: this.passwordHash,
+      addresses: this.addresses,
+      coin: this.coin,
+      network: this.network,
+    }
+
+    localStorage.setItem('coin-wallet', JSON.stringify(wallet))
   }
+
+  removeWallet = () => localStorage.removeItem('coin-wallet')
 
   encryptWallet = ({ password = isRequired('password') }) => {
     this.checkPassword({ password })
@@ -89,14 +99,14 @@ export default class Wallet {
     return decryptedPrivateKey
   }
 
-  downloadWallet = () => {
+  downloadWallet = ({ password = isRequired('password') }) => {
     // https://stackoverflow.com/a/30800715/3141988
-    const walletData = `data:text/json;charset=utf-8,${encodeURIComponent(
-      this.getWallet()
+    const walletData = `data:text/plain;charset=utf-8,${encodeURIComponent(
+      this.encryptWallet({ password })
     )}`
     const downloadAnchorNode = document.createElement('a')
     downloadAnchorNode.setAttribute('href', walletData)
-    downloadAnchorNode.setAttribute('download', `${this.coin}-${this.id}.json`)
+    downloadAnchorNode.setAttribute('download', `${this.coin}-${this.id}`)
     downloadAnchorNode.click()
     downloadAnchorNode.remove()
   }
