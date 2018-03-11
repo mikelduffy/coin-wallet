@@ -51,6 +51,7 @@ class Settings extends Component {
         oldPassword: this.state.oldPasswordValue,
         newPassword: this.state.newPasswordValue,
       })
+      this.props.wallet.setWallet()
       this.setState({
         oldPasswordValue: '',
         newPasswordValue: '',
