@@ -41,7 +41,7 @@ class App extends Component {
 
   wallet = new Wallet({ password: 'temp' })
 
-  handleInitializeWallet = async ({
+  handleInitializeNewWallet = async ({
     coin = isRequired('coin'),
     network = isRequired('network'),
     password = isRequired('password'),
@@ -79,7 +79,7 @@ class App extends Component {
         <Setup
           wallet={this.wallet}
           open={!this.state.setupComplete}
-          handleInitializeWallet={this.handleInitializeWallet}
+          handleInitializeNewWallet={this.handleInitializeNewWallet}
           handleCompleteSetup={this.handleCompleteSetup}
         />
 
