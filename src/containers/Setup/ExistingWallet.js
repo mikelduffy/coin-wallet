@@ -41,7 +41,6 @@ class ExistingWallet extends Component {
       this.handleReset()
       this.props.handleCompleteSetup()
     } catch (error) {
-      console.log(error)
       this.setState({ status: 'error' })
     }
   }
