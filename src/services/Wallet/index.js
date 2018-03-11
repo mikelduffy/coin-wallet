@@ -2,11 +2,11 @@ import uuid from 'uuid/v4'
 import aes from 'crypto-js/aes'
 import sha3 from 'crypto-js/sha3'
 import encUtf8 from 'crypto-js/enc-utf8'
-import request from '../helpers/request'
-import { validateWalletOptions, isRequired } from '../helpers/validation'
 import bitcoin from 'bitcoinjs-lib'
 import bigi from 'bigi'
 import buffer from 'buffer'
+import request from '../../helpers/request'
+import { validateWalletOptions, isRequired } from '../../helpers/validation'
 
 /**
  * @class Wallet
@@ -40,15 +40,46 @@ export default class Wallet {
     newPassword = isRequired('new password'),
   }) => {
     this.checkPassword({ password: oldPassword })
+
+    // Decrypt private keys
+    const privateKeys = []
+    Object.keys(this.addresses).forEach(id => {
+      const decryptedPrivateKey = this.decryptPrivateKey({
+        encryptedPrivateKey: this.addresses[id].private,
+        password: oldPassword,
+      })
+      privateKeys.push([id, decryptedPrivateKey])
+    })
+
+    // Change password
     this.passwordHash = sha3(newPassword).toString()
+
+    // Encrypt private keys
+    privateKeys.forEach(keyTuple => {
+      this.addresses[keyTuple[0]].private = this.encryptPrivateKey({
+        decryptedPrivateKey: keyTuple[1],
+        password: newPassword,
+      })
+    })
+
     return true
   }
 
-  getWallet = () => localStorage.getItem(this.id)
+  getWallet = () => localStorage.getItem('coin-wallet')
 
-  setWallet = ({ encryptedWallet = isRequired('encrypted wallet') }) => {
-    localStorage.setItem(this.id, encryptedWallet)
+  setWallet = () => {
+    const wallet = {
+      id: this.id,
+      passwordHash: this.passwordHash,
+      addresses: this.addresses,
+      coin: this.coin,
+      network: this.network,
+    }
+
+    localStorage.setItem('coin-wallet', JSON.stringify(wallet))
   }
+
+  removeWallet = () => localStorage.removeItem('coin-wallet')
 
   encryptWallet = ({ password = isRequired('password') }) => {
     this.checkPassword({ password })
@@ -89,14 +120,14 @@ export default class Wallet {
     return decryptedPrivateKey
   }
 
-  downloadWallet = () => {
+  downloadWallet = ({ password = isRequired('password') }) => {
     // https://stackoverflow.com/a/30800715/3141988
-    const walletData = `data:text/json;charset=utf-8,${encodeURIComponent(
-      this.getWallet()
+    const walletData = `data:text/plain;charset=utf-8,${encodeURIComponent(
+      this.encryptWallet({ password })
     )}`
     const downloadAnchorNode = document.createElement('a')
     downloadAnchorNode.setAttribute('href', walletData)
-    downloadAnchorNode.setAttribute('download', `${this.coin}-${this.id}.json`)
+    downloadAnchorNode.setAttribute('download', `${this.coin}-${this.id}`)
     downloadAnchorNode.click()
     downloadAnchorNode.remove()
   }
@@ -119,6 +150,9 @@ export default class Wallet {
     this.checkPassword({ password })
     const address = await request({
       url: `${this.baseURL}addrs`,
+      params: {
+        token: this.apiKey,
+      },
       method: 'POST',
     })
     const encryptPrivateKey = this.encryptPrivateKey({
@@ -134,6 +168,9 @@ export default class Wallet {
   getAddressData = async ({ addressId = isRequired('address id') }) => {
     const data = await request({
       url: `${this.baseURL}addrs/${this.addresses[addressId].address}`,
+      params: {
+        token: this.apiKey,
+      },
       method: 'GET',
     })
     return data
@@ -155,21 +192,25 @@ export default class Wallet {
     amount = isRequired('amount'),
   }) => {
     this.checkPassword({ password })
-    const fromAddress = this.addresses[fromAddressId]
+    const { address } = this.addresses[fromAddressId]
 
+    // Disabling this feature as it hits the API rate maximum. Handling it in the front-end (Dashboard/NewTransaction).
     // Check balance
-    const { balance } = await this.getAddressData({ addressId: fromAddressId })
-    if (balance < amount) {
-      throw new Error('Insufficient balance.')
-    }
+    // const { balance } = await this.getAddressData({ addressId: fromAddressId })
+    // if (balance < amount) {
+    //   throw new Error('Insufficient balance.')
+    // }
 
     // Get transaction data to sign
     const newTx = {
-      inputs: [{ addresses: [fromAddress] }],
+      inputs: [{ addresses: [address] }],
       outputs: [{ addresses: [toAddress], value: amount }],
     }
     const txSkeleton = await request({
       url: `${this.baseURL}txs/new`,
+      params: {
+        token: this.apiKey,
+      },
       method: 'POST',
       body: newTx,
     })
@@ -192,6 +233,9 @@ export default class Wallet {
     // Send signed transaction
     const tx = await request({
       url: `${this.baseURL}txs/send`,
+      params: {
+        token: this.apiKey,
+      },
       method: 'POST',
       body: txSkeleton,
     })
