@@ -1,10 +1,21 @@
 import React, { Component } from 'react'
+import { withStyles } from 'material-ui-next/styles'
 import Navigation from '../Navigation'
 import Setup from '../Setup'
 import Settings from '../Settings'
 import Dashboard from '../Dashboard'
 import Wallet from '../../services/Wallet'
 import { validateWalletOptions, isRequired } from '../../helpers/validation'
+
+const styles = theme => ({
+  root: {
+    flexGrow: 1,
+    zIndex: 1,
+    overflow: 'hidden',
+    position: 'relative',
+    display: 'flex',
+  },
+})
 
 class App extends Component {
   componentWillMount() {
@@ -30,7 +41,7 @@ class App extends Component {
 
   wallet = new Wallet({ password: 'temp' })
 
-  handleInitializeWallet = ({
+  handleInitializeWallet = async ({
     coin = isRequired('coin'),
     network = isRequired('network'),
     password = isRequired('password'),
@@ -39,6 +50,7 @@ class App extends Component {
     this.wallet.coin = coin
     this.wallet.network = network
     this.wallet.changePassword({ oldPassword: 'temp', newPassword: password })
+    await this.wallet.generateNewAddress({ password })
   }
 
   handleCompleteSetup = () => {
@@ -58,24 +70,30 @@ class App extends Component {
 
   render() {
     return (
-      <div>
-        <Navigation handleToggleSettings={this.handleToggleSettings} />
+      <div className={this.props.classes.root}>
+        <Navigation
+          coin={this.wallet.coin || 'Coin'}
+          handleToggleSettings={this.handleToggleSettings}
+        />
+
         <Setup
           wallet={this.wallet}
           open={!this.state.setupComplete}
           handleInitializeWallet={this.handleInitializeWallet}
           handleCompleteSetup={this.handleCompleteSetup}
         />
-        {this.state.setupComplete && <Dashboard wallet={this.wallet} />}
+
         <Settings
           wallet={this.wallet}
           open={this.state.settingsOpen}
           handleClose={this.handleToggleSettings}
           handleReset={this.handleReset}
         />
+
+        {this.state.setupComplete && <Dashboard wallet={this.wallet} />}
       </div>
     )
   }
 }
 
-export default App
+export default withStyles(styles)(App)
