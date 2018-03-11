@@ -105,6 +105,7 @@ class Dashboard extends Component {
               />
               <NewTransaction
                 wallet={this.props.wallet}
+                availableBalance={this.state.balance}
                 handleRefresh={this.handleRefresh}
               />
               <TransactionListing
