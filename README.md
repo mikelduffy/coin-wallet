@@ -4,18 +4,21 @@
 
 Coin Wallet is a standalone browser-based cryptocurrency wallet. It bootstrapped with [Create React App](https://github.com/facebookincubator/create-react-app) and uses the [Material UI](https://www.npmjs.com/package/material-ui) React component library. The [BlockCypher API](https://www.blockcypher.com/) is used to interface with the blockchain.
 
+## Disclaimer
+
+Be smart and use this at your own risk. I am not responsible for any lost funds.
+
 ## Features
 
-* [] Setup
+* [x] Setup
   * [x] Create new wallet
   * [x] Store wallet in browser's local storage (with encrypted private keys)
   * [x] Download encrypted wallet backup
-  * [] Import existing wallet backup
-* [] Main page
-  * [] View balance
-  * [] View transactions
-  * [] Send coins
-  * [] Request coins
+  * [x] Import existing wallet backup
+* [x] Main page
+  * [x] View balance
+  * [x] View transactions
+  * [x] Send coins
 * [x] Settings
   * [x] Export wallet
   * [x] Change wallet password
@@ -23,9 +26,9 @@ Coin Wallet is a standalone browser-based cryptocurrency wallet. It bootstrapped
 
 ## Getting Started
 
-* Clone this repository with `git clone [repo] && cd ./coin-wallet`
+* Clone this repository with `git clone https://github.com/mikelduffy/coin-wallet.git && cd ./coin-wallet`
 * Install dependencies with `yarn install` or `npm install`
-* Run `cp .env.local-sample .env.local` and add your blockcypher API key
+* Run `cp .env.local-sample .env.local` and add your blockcypher API key to your `.env.local` file
 * Start the application with `yarn start` or `npm start`
 
 ## Testing
